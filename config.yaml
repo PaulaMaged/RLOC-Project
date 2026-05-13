@@ -1,0 +1,21 @@
+environment:
+  actions: 4
+  bins:
+    low:
+      name: low
+      start: 0
+      end: 2
+    middle:
+      name: middle
+      start: 3
+      end: 6
+    high:
+      name: high
+      start: 7
+      end: null
+  lanes: 8
+  actions_names:
+    - NS-S
+    - NS-L
+    - WE-S
+    - WE-L
