@@ -1,6 +1,7 @@
 import numpy as np
 from collections import deque
 from helpers import is_tuple_of_ints
+import logging
 
 class IntersectionEnv:
     def __init__(self, arrival_rates, dequeue_rate, change_penalty, initState = None):
@@ -20,6 +21,41 @@ class IntersectionEnv:
             self.queues = queues
             self.current_phase = phase
             
+    @staticmethod
+    def getActionString(action):
+        match action:
+            case 0: return "N/S Left"
+            case 1: return "N/S Through"
+            case 2: return "E/W Left"
+            case 3: return "E/W Through"
+            
+    def getQueuesDict(self):
+        print(self.queues)
+        queuesDict = {}
+        for lane_idx, queue in enumerate(self.queues):
+            queuesDict[f"Lane {lane_idx}"] = len(queue)      
+        
+        return queuesDict
+    
+    def getQueuesStr(self):
+        queuesDict = self.getQueuesDict()
+        queuesStr = "\n"
+        for key, val in queuesDict.items():
+            queuesStr += f"{key}: {val}\n"
+        
+        return queuesStr
+    
+    @staticmethod
+    def getStateStr(state):
+        # Map integers to their string representations
+        levels = ["Low", "Medium", "High"]
+    
+        # Process all elements except the last one
+        arr = [levels[val] for val in state[:-1]]
+        
+        arr.append(IntersectionEnv.getActionString(state[-1]))
+        return str(tuple(arr))
+    
     def get_discrete_state(self):
         """
         Maps the density of the lanes to the 3 discrete bins: Low, Medium, High.
@@ -29,11 +65,11 @@ class IntersectionEnv:
         for q in self.queues:
             lane_density = len(q)
             if lane_density <= 2:
-                binned_queues.append(0) # Low
+                binned_queues.append(0)
             elif lane_density <= 6:
-                binned_queues.append(1) # Medium
+                binned_queues.append(1)
             else:
-                binned_queues.append(2) # High
+                binned_queues.append(2)
                 
         return tuple(binned_queues + [self.current_phase])
 
@@ -64,9 +100,10 @@ class IntersectionEnv:
         """Executes one time step in the environment."""
         reward = 0
         phase_changed = (action != self.current_phase)
-        
         # 1. Handle Safety Clearance Interval (5 seconds)
+
         if phase_changed:
+            logging.info("Phase change occured; a 5 time-step timelapse will occur before the action takes places!")
             for _ in range(5): 
                 self._process_arrivals()
                 # Accumulate the total wait time penalty during the clearance interval
@@ -77,8 +114,11 @@ class IntersectionEnv:
 
         # 2. Normal Time Step Processing
         self._process_arrivals()
-        active_lanes = self._get_lanes_for_phase(self.current_phase) 
+        logging.info("Queues after arrivals: \n%s", self.getQueuesStr())
+        active_lanes = self._get_lanes_for_phase(self.current_phase)
         self._process_departures(active_lanes)
+        logging.info("Queues after depatures: \n%s", self.getQueuesStr())
+
         
         # 3. Calculate Primary Reward 
         # Summing the values inside all deques gives us the cumulative wait time of every car

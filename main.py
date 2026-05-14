@@ -1,9 +1,22 @@
-
 import numpy as np
+import cProfile, pstats, io
+from datetime import datetime
+from pathlib import Path
+import pickle
+import logging
 
 from IntersectionEnv import IntersectionEnv
 from QLearningAgent import QLearningAgent
 
+# pr = cProfile.Profile()
+# pr.enable()
+
+logging.basicConfig(
+    filename=f'Logs/app.log-{datetime.now().strftime("%d-%m-%y_%H-%M-%S")}',
+    filemode='w',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 # --- Simulation Parameters ---
 # Arrival rates (lambda) for the 8 lanes (vehicles per second)
@@ -12,7 +25,7 @@ arrival_rates = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
 dequeue_rate = 0.5    # Vehicles cleared per second on green
 change_penalty = 10.0 # Eta: Penalty for switching phases to prevent flickering
 
-episodes = 2000
+episodes = 10
 steps_per_episode = 3600 # 1 hour of simulated time per episode
 
 # --- Initialization ---
@@ -26,12 +39,15 @@ print("Starting training phase...")
 
 # --- Main Training Loop ---
 for episode in range(episodes):
+    logging.info("Entering episode: %s", episode)
     # Reset the environment at the start of each episode
     env.__init__(arrival_rates, dequeue_rate, change_penalty)
     state = env.get_discrete_state()
     total_reward = 0
     
     for step in range(steps_per_episode):
+        logging.info("Entering step: %s", step)
+
         # 1. Agent chooses an action (phase)
         action = agent.choose_action(state)
         
@@ -40,6 +56,14 @@ for episode in range(episodes):
         
         # 3. Agent learns from the consequences
         agent.learn(state, action, reward, next_state)
+        
+        logging.info(
+            "Experience Tuple: (%s, %s, %i, %s)", 
+            IntersectionEnv.getStateStr(state), 
+            IntersectionEnv.getActionString(action), 
+            reward, 
+            IntersectionEnv.getStateStr(next_state)
+        )
         
         # 4. Transition to the next state
         state = next_state
@@ -50,8 +74,25 @@ for episode in range(episodes):
     episode_rewards.append(total_reward)
     
     # Print progress every 100 episodes
-    if (episode + 1) % 100 == 0:
+    if (episode + 1) % 2 == 0:
         avg_reward = np.mean(episode_rewards[-100:])
         print(f"Episode: {episode + 1:4d} | Epsilon: {agent.epsilon:.3f} | Avg Reward (Last 100): {avg_reward:.0f}")
 
 print("Training complete!")
+
+
+
+# pr.disable()
+
+# # 1. Define the directory and file path
+# folder = Path("profiling/")
+# current_datetime = datetime.now();
+# identifer_file_path = folder / f"profile_results_{current_datetime.strftime("%d-%m-%y_%H-%M-%S")}.pstat"
+
+# # 2. Create the directory path if it does not exist yet
+# folder.mkdir(parents=True, exist_ok=True)
+
+# with open(identifer_file_path, 'a') as file:
+#     ps = pstats.Stats(pr, stream=file).sort_stats('tottime')
+#     ps.print_stats('IntersectionEnv')  # filter to just your code
+#     ps.print_callers()

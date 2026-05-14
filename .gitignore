@@ -1,3 +1,7 @@
 *pycache*/
 .venv/
 .vscode/
+profiling/
+tests/
+external/
+Logs/
