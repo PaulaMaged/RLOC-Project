@@ -1,5 +1,6 @@
 import numpy as np
 from collections import deque
+from helpers import is_tuple_of_ints
 
 class IntersectionEnv:
     def __init__(self, arrival_rates, dequeue_rate, change_penalty, max_steps=3600):
