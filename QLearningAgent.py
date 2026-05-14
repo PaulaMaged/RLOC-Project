@@ -46,3 +46,6 @@ class QLearningAgent:
         """Reduces the exploration rate over time."""
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+            
+    def optimalAction(self, state):
+        return np.argmax(self.q_table[state])

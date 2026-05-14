@@ -1,19 +1,25 @@
 import numpy as np
 from collections import deque
+from helpers import is_tuple_of_ints
 
 class IntersectionEnv:
-    def __init__(self, arrival_rates, dequeue_rate, change_penalty):
+    def __init__(self, arrival_rates, dequeue_rate, change_penalty, initState = None):
         self.arrival_rates = arrival_rates
         self.dequeue_rate = dequeue_rate
         self.change_penalty = change_penalty
+        self.time_step = 1.0
         
-        # Initialize an array of 8 deques. 
-        # Each deque represents a lane. Elements inside are the wait times of individual cars.
-        self.queues = [deque() for _ in range(8)] 
-        
-        self.current_phase = 0 
-        self.time_step = 1.0 
-
+        if initState is None:
+            # Initialize an array of 8 deques. 
+            # Each deque represents a lane. Elements inside are the wait times of individual cars.
+            self.queues = [deque() for _ in range(8)] 
+            
+            self.current_phase = 0 
+        else:
+            queues, phase = initState[:8], initState[-1]
+            self.queues = queues
+            self.current_phase = phase
+            
     def get_discrete_state(self):
         """
         Maps the density of the lanes to the 3 discrete bins: Low, Medium, High.

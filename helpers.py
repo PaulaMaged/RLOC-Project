@@ -15,3 +15,5 @@ def NoCarsToCongestionLevels(count):
         
     return None
 
+def is_tuple_of_ints(obj):
+    return isinstance(obj, tuple) and all(isinstance(x, int) for x in obj)
