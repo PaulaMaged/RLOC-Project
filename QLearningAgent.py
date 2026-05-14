@@ -74,7 +74,7 @@ class QLearningAgent:
             
             # Reconstruct the defaultdict using your original lambda factory
             # Make sure 'self.action_space' matches how you define your actions (4 phases)
-            self.q_table = defaultdict(lambda: np.zeros(self.action_space))
+            self.q_table = defaultdict(lambda: np.zeros(self.action_space_size))
             
             # Populate it with the loaded data
             self.q_table.update(loaded_dict)
