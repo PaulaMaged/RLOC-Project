@@ -62,17 +62,10 @@ class IntersectionEnv:
         binned_queues = []
         for q in self.queues:
             lane_density = len(q)
-<<<<<<< HEAD
             if lane_density <= 0:
                 binned_queues.append(0) # Empty
             elif lane_density <= 4:
                 binned_queues.append(1) # Medium
-=======
-            if lane_density <= 2:
-                binned_queues.append(0)
-            elif lane_density <= 6:
-                binned_queues.append(1)
->>>>>>> 75327dbbfc89c60f3234e4c62bf19b4070b469a3
             else:
                 binned_queues.append(2)
                 
