@@ -11,10 +11,18 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import yaml
 import pickle
-import logging
 from datetime import datetime 
+import importlib
 
+import logging
+importlib.reload(logging)
+
+import IntersectionEnv
+importlib.reload(IntersectionEnv)
 from IntersectionEnv import IntersectionEnv
+
+import QLearningAgent
+importlib.reload(QLearningAgent)
 from QLearningAgent import QLearningAgent
 
 # %%
@@ -37,15 +45,28 @@ logging.basicConfig(
     filename=f'Logs/app.log-{datetime.now().strftime("%d-%m-%y_%H-%M-%S")}',
     filemode='w',
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(message)s'
 )
 
 # %%
 # Initialize your agent
 agent = QLearningAgent(action_space_size=4, alpha=0.1, gamma=0.95, epsilon=0.0)
 
-# Load the brain before interactinge with the environment
-agent.load_q_table("trained_green_wave_model1.pkl")
+agebtQtable_file = "trained_green_wave_model.pkl"
+
+from pathlib import Path
+config_file_path = Path("config.yaml")
+if config_file_path.exists():
+    import yaml
+    with open("config.yaml", 'r') as f:
+        try:
+            config = yaml.safe_load(f)
+            name = config["persistence"]["name"]
+            print(f"loaded pkl file name: {name}")
+        except Exception as e:
+            print(e)
+
+agent.load_q_table(name)
 
 # %%
 agent.epsilon = 0.9
@@ -77,12 +98,8 @@ for episode in range(episodes):
         
         agent.learn(state, action, reward, next_state)
         
-        logging.info(
-            "Experience Tuple: (%s, %s, %i, %s)", 
-            IntersectionEnv.getStateStr(state), 
-            IntersectionEnv.getActionString(action), 
-            reward
-        )
+        logging.info("Step %5d| State: %s | Action: %d | Reward: %-5d | Total Reward: %-8d)", env.current_time_step, env.getStateNdQueueStr(), action, reward, total_reward)
+
         
         state = next_state
         total_reward += reward
@@ -110,24 +127,25 @@ test_rewards = []
 agent.epsilon = 0.0  # No exploration during testing
 for episode in range(test_episodes):
 
-    logging.info("Entering episode: %s", episode)
+    logging.info(f"{'='*6}Entering new episode - Episode {episode}{'='*6}")
     state = env.reset()
     total_reward = 0
     done = False
     
     while not done:
         action = agent.optimalAction(state)  # Always choose the best action
+        
+        stateNdQueueStrBefore = env.getStateNdQueueStr()
+        timeStep = env.current_time_step
+        
         next_state, reward, done = env.step(action)
         
-        logging.info(
-            "Experience Tuple: (%s, %s, %i)", 
-            IntersectionEnv.getStateStr(state), 
-            IntersectionEnv.getActionString(action), 
-            reward
-        )
-
         state = next_state
         total_reward += reward
+        
+        logging.info("Step %5d| State: %s | Action: %d | Reward: %-5d | Total Reward: %-8d)",
+                     timeStep, stateNdQueueStrBefore, action, reward, total_reward)
+        
 
         print(f"Episode: {episode + 1:3d}| State: {state} | Action: {action} | Reward: {reward:.0f} | Total Reward: {total_reward:.0f}")
         

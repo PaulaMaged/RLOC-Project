@@ -1,13 +1,15 @@
 import numpy as np
 from collections import deque
 import logging
+import math
 
 class IntersectionEnv:
-    def __init__(self, arrival_rates, dequeue_rate, change_penalty, max_steps=3600):
+    def __init__(self, arrival_rates, dequeue_rate, change_penalty, max_steps=3600, binDef = [("Empty", 0), ("Medium", 4), ("High", math.inf)]):
         self.arrival_rates = arrival_rates
         self.dequeue_rate = dequeue_rate
         self.change_penalty = change_penalty
         self.max_steps = max_steps
+        self.binDef = binDef
         self.reset()
 
     def reset(self):
@@ -37,6 +39,23 @@ class IntersectionEnv:
         
         return queuesStr
     
+    def getStateNdQueueStr(self):
+        parts = []
+        discretized_state = self.get_discrete_state()
+        for idx, binLevel in enumerate(discretized_state[:-1]):
+            first = f"L{idx}({self.getLevelName(binLevel):<6})"
+            parts.append(f"{first:>8}: {len(self.queues[idx]):<3}")
+        
+        outputStr = "(" + ", ".join(parts) + ", " f"{self.current_phase}" + ")"
+        return outputStr
+    
+    def getLevelName(self, level):
+        for pair in self.binDef:
+            name, edge = pair
+            if(level <= edge):
+                return name
+        return "UNKNOWN"
+    
     @staticmethod
     def getStateStr(state):
         # Map integers to their string representations
@@ -53,12 +72,13 @@ class IntersectionEnv:
         binned_queues = []
         for q in self.queues:
             lane_density = len(q)
-            if lane_density <= 0:
-                binned_queues.append(0) # Empty
-            elif lane_density <= 4:
-                binned_queues.append(1) # Medium
+            for idx, binDef in enumerate(self.binDef):
+                _ , edge = binDef
+                if(lane_density <= edge):
+                    binned_queues.append(idx)
+                    break
             else:
-                binned_queues.append(2)
+                raise Exception("Shouldn't have undefined bin levels for lane")
                 
         return tuple(binned_queues + [self.current_phase])
 
@@ -106,15 +126,13 @@ class IntersectionEnv:
 
     def step(self, action):
         """Executes one agent decision in the environment."""
-        logging.info("Entering step: %s", self.current_time_step)
-
         reward = 0
         done = False
         phase_changed = (action != self.current_phase)
         # 1. Handle Safety Clearance Interval (5 seconds)
 
         if phase_changed:
-            logging.info("Phase change occured; a 5 time-step timelapse will occur before the action takes places!")
+            # logging.info("Phase change occured with a penalty of %i; a 5 time-step timelapse will occur before the action takes places!", self.change_penalty)
             reward -= self.change_penalty
             
             # Simulate 5 seconds where NO cars depart
@@ -131,14 +149,12 @@ class IntersectionEnv:
             self._advance_time_one_step(departures_allowed=True)
             if self.current_time_step >= self.max_steps:
                 done = True
-        
-        logging.info("Queues after timestep: \n%s", self.getQueuesStr())
-        
+                
         # 3. Calculate Primary Reward (O(1) Time Complexity)
         # Simply sum the 8 integers in our running total. No loops, no deque iterations!
         total_wait_penalty = sum(self.running_wait_time)
         reward -= total_wait_penalty
-        
+        # logging.info("Incurred a wait time penalty of %s", total_wait_penalty)
         next_state = self.get_discrete_state()
         
         return next_state, reward, done

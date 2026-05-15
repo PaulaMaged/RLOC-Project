@@ -19,3 +19,5 @@ environment:
     - NS-L
     - WE-S
     - WE-L
+persistence:
+  name: trained_green_wave_model1.pkl
