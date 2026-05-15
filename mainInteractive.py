@@ -45,7 +45,7 @@ logging.basicConfig(
 agent = QLearningAgent(action_space_size=4, alpha=0.1, gamma=0.95, epsilon=0.0)
 
 # Load the brain before interactinge with the environment
-agent.load_q_table("trained_green_wave_model.pkl")
+agent.load_q_table("trained_green_wave_model1.pkl")
 
 # %%
 agent.epsilon = 0.9
@@ -120,7 +120,7 @@ for episode in range(test_episodes):
         next_state, reward, done = env.step(action)
         
         logging.info(
-            "Experience Tuple: (%s, %s, %i, %s)", 
+            "Experience Tuple: (%s, %s, %i)", 
             IntersectionEnv.getStateStr(state), 
             IntersectionEnv.getActionString(action), 
             reward
