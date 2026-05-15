@@ -81,8 +81,7 @@ for episode in range(episodes):
             "Experience Tuple: (%s, %s, %i, %s)", 
             IntersectionEnv.getStateStr(state), 
             IntersectionEnv.getActionString(action), 
-            reward, 
-            IntersectionEnv.getStateStr(next_state)
+            reward
         )
         
         state = next_state
@@ -102,7 +101,7 @@ print("Training complete!")
 
 #%%
 
-logging.disable(level=logging.NOTSET)  # Disable INFO logs during training for cleaner output
+logging.disable(level=logging.NOTSET)  
 
 print("Starting testing phase...")
 # --- Testing Loop ---
@@ -124,8 +123,7 @@ for episode in range(test_episodes):
             "Experience Tuple: (%s, %s, %i, %s)", 
             IntersectionEnv.getStateStr(state), 
             IntersectionEnv.getActionString(action), 
-            reward, 
-            IntersectionEnv.getStateStr(next_state)
+            reward
         )
 
         state = next_state
