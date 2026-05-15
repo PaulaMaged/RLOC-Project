@@ -54,7 +54,7 @@ agent.epsilon_decay = 1
 
 episode_rewards = []
 
-logging.disabled = True  # Disable INFO logs during training for cleaner output
+logging.disable(level=logging.CRITICAL)  # Disable all logs during training for cleaner output
 
 print("Starting training phase...")
 
@@ -102,7 +102,7 @@ print("Training complete!")
 
 #%%
 
-logging.disabled = True  # Disable INFO logs during training for cleaner output
+logging.disable(level=logging.NOTSET)  # Disable INFO logs during training for cleaner output
 
 print("Starting testing phase...")
 # --- Testing Loop ---
