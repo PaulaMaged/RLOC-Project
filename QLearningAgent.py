@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 from collections import defaultdict
 
 class QLearningAgent:
@@ -49,3 +50,37 @@ class QLearningAgent:
             
     def optimalAction(self, state):
         return np.argmax(self.q_table[state])
+    
+    def save_q_table(self, filename="q_table.pkl"):
+        """
+        Exports the Q-table to a binary pickle file.
+        We cast it to a standard dict to avoid lambda serialization errors.
+        """
+        try:
+            with open(filename, 'wb') as f:
+                # Convert defaultdict to a standard dict for safe pickling
+                pickle.dump(dict(self.q_table), f)
+            print(f"Success: Q-table saved to {filename}")
+        except Exception as e:
+            print(f"Error saving Q-table: {e}")
+
+    def load_q_table(self, filename="q_table.pkl"):
+        """
+        Imports a trained Q-table from a pickle file and reconstructs the defaultdict.
+        """
+        try:
+            with open(filename, 'rb') as f:
+                loaded_dict = pickle.load(f)
+            
+            # Reconstruct the defaultdict using your original lambda factory
+            # Make sure 'self.action_space' matches how you define your actions (4 phases)
+            self.q_table = defaultdict(lambda: np.zeros(self.action_space_size))
+            
+            # Populate it with the loaded data
+            self.q_table.update(loaded_dict)
+            print(f"Success: Q-table loaded from {filename}. Ready to evaluate!")
+            
+        except FileNotFoundError:
+            print(f"Notice: No existing Q-table found at '{filename}'. Starting with a fresh table.")
+        except Exception as e:
+            print(f"Error loading Q-table: {e}")
