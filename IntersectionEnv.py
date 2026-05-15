@@ -30,18 +30,10 @@ class IntersectionEnv:
             case 2: return "E/W Left"
             case 3: return "E/W Through"
             
-    def getQueuesDict(self):
-        queuesDict = {}
-        for lane_idx, queue in enumerate(self.queues):
-            queuesDict[f"Lane {lane_idx}"] = len(queue)      
-
-        return queuesDict
-    
     def getQueuesStr(self):
-        queuesDict = self.getQueuesDict()
         queuesStr = "\n"
-        for key, val in queuesDict.items():
-            queuesStr += f"{key}: {val}\n"
+        for idx, queue in enumerate(self.queues):
+            queuesStr += f"Lane {idx}: {len(queue)}\n"
         
         return queuesStr
     
