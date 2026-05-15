@@ -3,6 +3,9 @@
 # The project works on a traffic signal agent that allows for responding to varying states of congestion.
 
 # %%
+print("test kernel")
+
+# %%
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -18,7 +21,7 @@ arrival_rates = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
 dequeue_rate = 0.5    
 change_penalty = 10.0 
 
-episodes = 2000
+episodes = 5000
 steps_per_episode = 3600 
 
 # --- Initialization ---
@@ -37,6 +40,8 @@ agent.load_q_table("trained_green_wave_model.pkl")
 
 # %%
 agent.epsilon = 0.9
+agent.epsilon_decay = 1
+
 
 episode_rewards = []
 
@@ -72,15 +77,40 @@ for episode in range(episodes):
 curr_episode += episodes
 print("Training complete!")
 
+
+#%%
+print("Starting testing phase...")
+# --- Testing Loop ---
+test_episodes = 100
+test_rewards = []
+agent.epsilon = 0.0  # No exploration during testing
+for episode in range(test_episodes):
+    state = env.reset()
+    total_reward = 0
+    done = False
+    
+    while not done:
+        action = agent.optimalAction(state)  # Always choose the best action
+        next_state, reward, done = env.step(action)
+        
+        state = next_state
+        total_reward += reward
+
+        print(f"Episode: {episode + 1:3d}| State: {state} | Action: {action} | Reward: {reward:.0f} | Total Reward: {total_reward:.0f}")
+        
+    test_rewards.append(total_reward)
+    print(f"Test Episode: {episode + 1:3d} | Total Reward: {total_reward:.0f}")
+
+#%%
+
 # %%
 
 # Save the trained Q-table to a file
 agent.save_q_table("trained_green_wave_model1.pkl")
 
-# %%
-print("test kernel")
 
-# %%
 print(len(agent.q_table))
 
 
+
+# %%
