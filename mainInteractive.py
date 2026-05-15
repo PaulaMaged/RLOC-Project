@@ -54,11 +54,14 @@ agent.epsilon_decay = 1
 
 episode_rewards = []
 
+logging.disabled = True  # Disable INFO logs during training for cleaner output
+
 print("Starting training phase...")
 
 # --- Main Training Loop ---
 for episode in range(episodes):
     # Use the proper reset method instead of __init__
+
     
     logging.info("Entering episode: %s", episode)
     state = env.reset()
@@ -98,12 +101,17 @@ print("Training complete!")
 
 
 #%%
+
+logging.disabled = True  # Disable INFO logs during training for cleaner output
+
 print("Starting testing phase...")
 # --- Testing Loop ---
 test_episodes = 100
 test_rewards = []
 agent.epsilon = 0.0  # No exploration during testing
 for episode in range(test_episodes):
+
+    logging.info("Entering episode: %s", episode)
     state = env.reset()
     total_reward = 0
     done = False
@@ -112,6 +120,14 @@ for episode in range(test_episodes):
         action = agent.optimalAction(state)  # Always choose the best action
         next_state, reward, done = env.step(action)
         
+        logging.info(
+            "Experience Tuple: (%s, %s, %i, %s)", 
+            IntersectionEnv.getStateStr(state), 
+            IntersectionEnv.getActionString(action), 
+            reward, 
+            IntersectionEnv.getStateStr(next_state)
+        )
+
         state = next_state
         total_reward += reward
 
