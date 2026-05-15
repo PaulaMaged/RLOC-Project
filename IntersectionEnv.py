@@ -40,7 +40,7 @@ class IntersectionEnv:
     @staticmethod
     def getStateStr(state):
         # Map integers to their string representations
-        levels = ["Low", "Medium", "High"]
+        levels = ["Empty", "Low", "High"]
     
         # Process all elements except the last one
         arr = [levels[val] for val in state[:-1]]
