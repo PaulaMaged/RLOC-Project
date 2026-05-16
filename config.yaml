@@ -20,4 +20,4 @@ environment:
     - WE-S
     - WE-L
 persistence:
-  name: trained_green_wave_model1.pkl
+  name: trained_green_wave_model.pkl

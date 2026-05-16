@@ -39,16 +39,36 @@ class IntersectionEnv:
         
         return queuesStr
     
-    def getStateNdQueueStr(self):
-        parts = []
-        discretized_state = self.get_discrete_state()
-        for idx, binLevel in enumerate(discretized_state[:-1]):
-            first = f"L{idx}({self.getLevelName(binLevel):<6})"
-            parts.append(f"{first:>8}: {len(self.queues[idx]):<3}")
-        
-        outputStr = "(" + ", ".join(parts) + ", " f"{self.current_phase}" + ")"
-        return outputStr
+    def getLaneCounts(self):
+        return [len(queue) for queue in self.queues]
     
+    def getStateNdQueueStr(self, ver=0):
+        discretized_state = self.get_discrete_state()
+        laneCounts = self.getLaneCounts();
+
+        
+        if ver==1:
+            discretized_state_chr = list(str(discretized_state[:4]))
+            discretized_state_chr.insert(discretized_state[-1] * 3 + 1, "*")
+            stateFirstHalf = "".join(discretized_state_chr);
+            
+            discretized_state2_chr = list(str(discretized_state[4:-1]))
+            discretized_state2_chr.insert(discretized_state[-1] * 3 + 1, "*")
+            stateSecondHalf = "".join(discretized_state2_chr)
+            
+            first = f"\t\t{stateFirstHalf}\t\t{laneCounts[:4]}"
+            second = f"\t\t{stateSecondHalf}\t\t{laneCounts[4:]}"
+            return first + "\n" + second
+        else:
+            parts = []
+            for idx, binLevel in enumerate(discretized_state[:-1]):
+                first = f"L{idx}({self.getLevelName(binLevel):<6})"
+                parts.append(f"{first:>8}: {len(self.queues[idx]):<3}")
+            
+            outputStr = "(" + ", ".join(parts) + ", " f"{self.current_phase}" + ")"
+            return outputStr
+        
+        
     def getLevelName(self, level):
         for pair in self.binDef:
             name, edge = pair
