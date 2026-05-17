@@ -5,3 +5,4 @@ profiling/
 tests/
 external/
 Logs/
+*.yaml

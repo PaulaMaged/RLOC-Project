@@ -149,15 +149,17 @@ class IntersectionEnv:
         reward = 0
         done = False
         phase_changed = (action != self.current_phase)
-        # 1. Handle Safety Clearance Interval (5 seconds)
 
+        # 1. Handle Safety Clearance Interval (5 seconds)
         if phase_changed:
-            # logging.info("Phase change occured with a penalty of %i; a 5 time-step timelapse will occur before the action takes places!", self.change_penalty)
             reward -= self.change_penalty
             
             # Simulate 5 seconds where NO cars depart
+            # CRITICAL FIX: The agent must pay the penalty for every passing second
             for _ in range(5): 
                 self._advance_time_one_step(departures_allowed=False)
+                reward -= sum(self.running_wait_time) 
+                
                 if self.current_time_step >= self.max_steps:
                     done = True
                     break
@@ -167,14 +169,12 @@ class IntersectionEnv:
         # 2. Normal Time Step Processing (1 second of green light)
         if not done:
             self._advance_time_one_step(departures_allowed=True)
+            # Pay the penalty for this normal passing second
+            reward -= sum(self.running_wait_time)
+            
             if self.current_time_step >= self.max_steps:
                 done = True
                 
-        # 3. Calculate Primary Reward (O(1) Time Complexity)
-        # Simply sum the 8 integers in our running total. No loops, no deque iterations!
-        total_wait_penalty = sum(self.running_wait_time)
-        reward -= total_wait_penalty
-        # logging.info("Incurred a wait time penalty of %s", total_wait_penalty)
         next_state = self.get_discrete_state()
         
         return next_state, reward, done
