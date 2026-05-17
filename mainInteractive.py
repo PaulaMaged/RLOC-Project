@@ -74,8 +74,9 @@ agent.epsilon = 1
 episodes = 10000
 
 episode_rewards = []
+avg_reward = 0
 
-logging.disable(level=logging.WARNING)  # Disable all logs during training for cleaner output
+logging.disable(level=logging.NOTSET)  # Disable all logs during training for cleaner output
 
 print("Starting training phase...")
 
@@ -99,23 +100,28 @@ for episode in range(episodes):
         
         logging.info("Step %5d| Reward: %-5d | Total Reward: %s)", env.current_time_step, reward, f"{total_reward:,}")
         logging.info(env.getStateNdQueueStr(ver=1))
-        # currentPoint = f"E{episode + 1 + curr_episode}S{env.current_time_step}"
-        # print(f"{currentPoint:>11}| State: {state} | Action: {action} | Reward: {reward:.0f} | Total Reward: {total_reward:.0f}")
-
+        
         state = next_state
         total_reward += reward
         
     agent.decay_epsilon()
     episode_rewards.append(total_reward)
     
+    if (episode + 1) % 10 == 0:
+        agent.epsilon = 1
     if (episode + 1) % 100 == 0:
         avg_reward = np.mean(episode_rewards[-100:])
         print(f"Episode: {episode + curr_episode + 1:4d} | Epsilon: {agent.epsilon:.3f} | Avg Reward (Last 100): {avg_reward:.0f}")
     if (episode + 1) % 500 == 0:
         agent.save_q_table("temp.pkl")
         logging.critical("Trained for 500 episodes, 3600 steps each. Avg Reward (Last 500): %.0f", avg_reward)
-        avg_reward = np.mean(episode_rewards[-500:])
-
+        new_avg_reward = np.mean(episode_rewards[-500:])
+        if (new_avg_reward / avg_reward) < 5:
+            logging.critical("New Average Reward is 5 times better than previous!")
+    if (episode + 1) % 500 > 450:
+        logging.critical("Step %5d| Reward: %-5d | Total Reward: %s)", env.current_time_step, reward, f"{total_reward:,}")
+        logging.critical(env.getStateNdQueueStr(ver=1))
+        
 curr_episode += episodes
 print("Training complete!")
 
@@ -125,6 +131,8 @@ print("Training complete!")
 logging.disable(level=logging.NOTSET)  
 
 print(f"Starting testing phase for: {type(agent)}...")
+logging.critical("Starting testing phase for: %s...", str(type(agent)))
+
 # --- Testing Loop ---
 test_episodes = 100
 test_rewards = []
@@ -170,6 +178,8 @@ logging.disable(level=logging.NOTSET)
 roundRobinAgent = RoundRobinAgent()
 
 print(f"Starting testing phase for static agent: {type(roundRobinAgent)}...")
+logging.critical("Starting testing phase for: %s...", str(type(roundRobinAgent)))
+
 # --- Testing Loop ---
 test_episodes = 100
 test_rewards = []
